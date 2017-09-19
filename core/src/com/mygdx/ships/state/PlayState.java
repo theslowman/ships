@@ -1,6 +1,7 @@
 package com.mygdx.ships.state;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
@@ -10,6 +11,8 @@ import com.mygdx.ships.AIPlayer;
 import com.mygdx.ships.HumanPlayer;
 import com.mygdx.ships.Plansza;
 import com.mygdx.ships.Player;
+
+import java.util.Random;
 
 /**
  * Created by commandcentral on 4/30/2017.
@@ -31,9 +34,14 @@ public class PlayState extends State {
     HumanPlayer human = new HumanPlayer();
     Player generator = new AIPlayer();
     Viewport viewport = new StretchViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-
+    Sound shot = Gdx.audio.newSound(Gdx.files.internal("effect/shot.mp3"));
+    Sound bomb = Gdx.audio.newSound(Gdx.files.internal("effect/bomb.wav"));
+    Sound incoming = Gdx.audio.newSound(Gdx.files.internal("effect/incoming.wav"));
+    Sound splash = Gdx.audio.newSound(Gdx.files.internal("effect/splash.wav"));
+    Sound extra = Gdx.audio.newSound(Gdx.files.internal("effect/extra.wav"));
     public PlayState(GameStateManager gameStateManager) {
         super(gameStateManager);
+
         camera.setToOrtho(true, PlayState.BOXES_WIDTH * PlayState.TEXTURE_SIZE / 2, PlayState.BOXES_HEIGHT * PlayState.TEXTURE_SIZE);
         enemy.addShips();
         AIBoard = enemy.getPlansza();
@@ -56,6 +64,10 @@ public class PlayState extends State {
                         return;
                     }
                     isYourTurn = human.attack(enemy, (int) input.x / TEXTURE_SIZE - 12, (int) input.y / TEXTURE_SIZE - 1);
+                    blastDelay();
+                    if (isYourTurn){
+                        bomb.play();
+                    }else splash.play();
                     if (enemy.getPlansza().allDrowned()){
                         gameStateManager.set(new PlayState(gameStateManager));
                     }
@@ -68,9 +80,12 @@ public class PlayState extends State {
             }
         } else {
             isYourTurn = !enemy.attack(human);
+            blastDelay();
+            if (!isYourTurn) incoming.play();
+            else splash.play();
             if (human.getPlansza().allDrowned())
                 gameStateManager.set(new PlayState(gameStateManager));
-            blastDelay();
+
         }
     }
 
@@ -145,8 +160,11 @@ public class PlayState extends State {
     }
 
     public void blastDelay() {
+        if (new Random().nextInt(20)==10)
+            extra.play();
+        shot.play();
         try {
-            Thread.sleep(1000);
+            Thread.sleep(1500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

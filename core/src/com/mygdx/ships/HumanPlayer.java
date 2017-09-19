@@ -6,7 +6,6 @@ public class HumanPlayer extends Player{
 	Plansza plansza = new Plansza(SIZE);
 	Plansza planszaPrzeciwnika = new Plansza(SIZE);
 	Scanner in = new Scanner(System.in);
-	boolean prevWasHit = false;
 
 
 
@@ -37,7 +36,6 @@ public class HumanPlayer extends Player{
 
 
 	public boolean attack(Player enemy, int x , int y) {
-		String input;
 
 			if(wasAttacked(x,y)) {
 				return false;
