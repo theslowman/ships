@@ -4,6 +4,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import com.mygdx.ships.AIPlayer;
 import com.mygdx.ships.HumanPlayer;
 import com.mygdx.ships.Plansza;
@@ -23,17 +25,16 @@ public class PlayState extends State {
     public static final String ST = "statek";
     public static final String P = "pudlo";
     public static final String B = "pole bia³e";
-
-    Plansza humanBoard;
+    boolean isYourTurn = true;
     Plansza AIBoard;
     Player enemy = new AIPlayer();
-    Player human = new HumanPlayer();
+    HumanPlayer human = new HumanPlayer();
     Player generator = new AIPlayer();
+    Viewport viewport = new StretchViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
     public PlayState(GameStateManager gameStateManager) {
         super(gameStateManager);
-        SpriteBatch batch = new SpriteBatch();
-
+        camera.setToOrtho(true, PlayState.BOXES_WIDTH * PlayState.TEXTURE_SIZE / 2, PlayState.BOXES_HEIGHT * PlayState.TEXTURE_SIZE);
         enemy.addShips();
         AIBoard = enemy.getPlansza();
         generator.addShips();
@@ -43,25 +44,33 @@ public class PlayState extends State {
 
     @Override
     protected void handleInput() {
-        if (yourTurn())
-        if (Gdx.input.justTouched()) {
-            Vector2 input = new Vector2(Gdx.input.getX(), HEIGHT - Gdx.input.getY());
-            SpriteBatch touched = new SpriteBatch();
-            touched.begin();
-            if (isInEnemyBattlefield(input)) {
-                if (wasEnemyFieldAttacked(input)){
-                    System.out.println("nie wolno");
-                    return;
+        if (yourTurn()) {
+            if (Gdx.input.justTouched()) {
+                enemy.displayBattlefield();
+                Vector2 input = new Vector2(Gdx.input.getX(), HEIGHT - Gdx.input.getY());
+                SpriteBatch touched = new SpriteBatch();
+                touched.begin();
+                if (isInEnemyBattlefield(input)) {
+                    if (wasEnemyFieldAttacked(input)) {
+                        System.out.println("nie wolno");
+                        return;
+                    }
+                    isYourTurn = human.attack(enemy, (int) input.x / TEXTURE_SIZE - 12, (int) input.y / TEXTURE_SIZE - 1);
+                    if (enemy.getPlansza().allDrowned()){
+                        gameStateManager.set(new PlayState(gameStateManager));
+                    }
                 }
-                blastDelay();
-                AIBoard.attack((int)input.x/TEXTURE_SIZE,(int)input.y/TEXTURE_SIZE);
-                AIBoard.displayPlansza();
-            }
+                touched.draw(new Texture("chars/0.png")
+                        , (float) (Math.floor(input.x / TEXTURE_SIZE) * TEXTURE_SIZE)
+                        , (float) (Math.floor((input.y) / TEXTURE_SIZE) * TEXTURE_SIZE));
+                touched.end();
 
-            touched.draw(new Texture("chars/0.png")
-                    , (float) (Math.floor(input.x / TEXTURE_SIZE) * TEXTURE_SIZE)
-                    , (float) (Math.floor((input.y) / TEXTURE_SIZE) * TEXTURE_SIZE));
-            touched.end();
+            }
+        } else {
+            isYourTurn = !enemy.attack(human);
+            if (human.getPlansza().allDrowned())
+                gameStateManager.set(new PlayState(gameStateManager));
+            blastDelay();
         }
     }
 
@@ -73,11 +82,13 @@ public class PlayState extends State {
 
     @Override
     public void render(SpriteBatch batch) {
+
         batch.begin();
         drawWater(batch);
         drawGolden(batch);
         drawNumbers(batch);
         drawLetters(batch);
+        drawShips(batch);
         batch.end();
     }
 
@@ -120,8 +131,12 @@ public class PlayState extends State {
         }
     }
 
-    public void drawShips(SpriteBatch batch){
-
+    public void drawShips(SpriteBatch batch) {
+        for (int x = 0; x < 10; x++)
+            for (int y = 0; y < 10; y++) {
+                batch.draw(human.getEnemyPlansza().getPoleTexture(x, y), (x + 12) * TEXTURE_SIZE, (y + 1) * TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE);
+                batch.draw(human.getPlansza().getPoleTexture(x, y), (x + 1) * TEXTURE_SIZE, (y + 1) * TEXTURE_SIZE, TEXTURE_SIZE, TEXTURE_SIZE);
+            }
     }
 
     public boolean isInEnemyBattlefield(Vector2 input) {
@@ -129,7 +144,7 @@ public class PlayState extends State {
                 && input.y / TEXTURE_SIZE > 0 && input.y / TEXTURE_SIZE < (BOXES_HEIGHT - 1);
     }
 
-    public void blastDelay(){
+    public void blastDelay() {
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -137,11 +152,11 @@ public class PlayState extends State {
         }
     }
 
-    boolean yourTurn(){
-        return true;
+    boolean yourTurn() {
+        return isYourTurn;
     }
 
-    boolean wasEnemyFieldAttacked(Vector2 input){
-        return AIBoard.getPole((int)input.y/TEXTURE_SIZE,(int) input.x/TEXTURE_SIZE-11).getStatus().equals(T)||AIBoard.getPole((int)input.y/TEXTURE_SIZE, (int)input.x/TEXTURE_SIZE-11).getStatus().equals(P);
+    boolean wasEnemyFieldAttacked(Vector2 input) {
+        return AIBoard.getPole((int) input.y / TEXTURE_SIZE - 1, (int) input.x / TEXTURE_SIZE - 12).getStatus().equals(T) || AIBoard.getPole((int) input.y / TEXTURE_SIZE - 1, (int) input.x / TEXTURE_SIZE - 12).getStatus().equals(P);
     }
 }

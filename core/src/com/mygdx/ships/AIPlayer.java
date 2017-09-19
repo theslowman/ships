@@ -2,7 +2,7 @@ package com.mygdx.ships;
 
 import java.util.Random;
 
-public class AIPlayer implements Player{
+public class AIPlayer extends Player{
 
 	Plansza plansza = new Plansza(SIZE);
 	Plansza planszaPrzeciwnika = new Plansza(SIZE);
@@ -189,8 +189,6 @@ public class AIPlayer implements Player{
 	}
 
 
-
-
 	void addShip(int size){
 		int x, y, xx, yy;
 		while(true){
@@ -231,13 +229,6 @@ public class AIPlayer implements Player{
 		return false;
 	}
 
-
-	@Override
-	public void displayPlansza() {
-		// TODO Auto-generated method stub
-
-	}
-
 	@Override
 	public void displayBattlefield() {
 		{
@@ -266,30 +257,16 @@ public class AIPlayer implements Player{
 
 	@Override
 	public void copyPlansza(Plansza plansza) {
-
-
 	}
 
 	@Override
 	public Plansza getPlansza() {
 		return plansza;
-
 	}
 
 	@Override
 	public Plansza getEnemyPlansza() {
 		return planszaPrzeciwnika;
-	}
-
-	@Override
-	public void setPrevious(boolean x) {
-
-	}
-
-	@Override
-	public boolean getPrev() {
-		// TODO Auto-generated method stub
-		return false;
 	}
 }
 

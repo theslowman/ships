@@ -2,7 +2,7 @@ package com.mygdx.ships;
 
 import java.util.Scanner;
 
-public class HumanPlayer implements Player{
+public class HumanPlayer extends Player{
 	Plansza plansza = new Plansza(SIZE);
 	Plansza planszaPrzeciwnika = new Plansza(SIZE);
 	Scanner in = new Scanner(System.in);
@@ -29,34 +29,19 @@ public class HumanPlayer implements Player{
 //
 	}
 
-
 	@Override
-	public boolean attack(Player enemy) {
+	public boolean attack(Player x) {
+		return false;
+	}
+
+
+
+	public boolean attack(Player enemy, int x , int y) {
 		String input;
-		int x, y;
 
-		System.out.println("Podaj wspó³rzêdne ataku!");
-		input = in.nextLine();
-
-		while(true){
-			if(!isCoordinateValid(input)){
-				System.out.println("B³êdne dane!");
-				input = in.nextLine();
-
-				continue;
-			}
-			x = getX(input);
-			y = getY(input);
 			if(wasAttacked(x,y)) {
-				System.out.println("Pole by³o atakowane! Podaj kolejny cel:");
-				input = in.nextLine();
-				x = getX(input);
-				y = getY(input);
-				continue;
+				return false;
 			}
-
-			break;
-		}
 
 		if(enemy.beAttacked(x, y)){
 
@@ -124,13 +109,6 @@ public class HumanPlayer implements Player{
 		return false;
 	}
 
-
-	boolean isCoordinateValid(String p){
-		if(p.length()<2||p.length()>3) return false;
-		if(p.length()==3&&(p.charAt(2)!='0')) return false;
-		if(machesArea(p)) return true;
-		return false;
-	}
 	boolean isCoordinateValid(String p, String k, int size){
 		if(p.length()<2||p.length()>3) return false;
 		if(p.length()==3&&(p.charAt(2)!='0')) return false;
@@ -186,9 +164,6 @@ public class HumanPlayer implements Player{
 		displayCoordinateRequest(size);
 		setupShip(size);
 	}
-	public void displayPlansza(){
-		plansza.displayPlansza();
-	}
 	public void displayBattlefield(){
 		{
 			plansza.displayLetterIndexes();
@@ -216,17 +191,5 @@ public class HumanPlayer implements Player{
 				this.plansza.setPole(i,j,plansza.getPole(i,j));
 		displayBattlefield();
 	}
-
-
-	@Override
-	public void setPrevious(boolean x) {
-		prevWasHit = x;
-
-	}
-
-	public boolean getPrev(){
-		return prevWasHit;
-	}
-
 }
 
